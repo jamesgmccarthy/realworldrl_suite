@@ -26,7 +26,7 @@ import dm_env
 from dm_env import specs
 from realworldrl_suite.utils import accumulators
 import six
-
+import numpy as np
 
 class LoggingEnv(control.Environment):
   """Subclass of control.Environment which adds logging."""
@@ -134,6 +134,7 @@ class LoggingEnv(control.Environment):
     """Updates the environment using the action and returns a `TimeStep`."""
     do_track = not self._reset_next_step
     timestep = super(LoggingEnv, self).step(action)
+    constraints = timestep.observation.get('constraints',np.array([0]))
     if do_track:
       self._track(timestep)
     if timestep.last():
@@ -143,13 +144,15 @@ class LoggingEnv(control.Environment):
     # Only flatten observation if we're not forwarding one from a reset(),
     # as it will already be flattened.
     if self._flat_observation_ and not timestep.first():
+      
       timestep = dm_env.TimeStep(
           step_type=timestep.step_type,
           reward=timestep.reward,
           discount=timestep.discount,
           observation=control.flatten_observation(
               timestep.observation)['observations'])
-    return timestep
+      
+    return timestep, constraints
 
   def _track(self, timestep):
     if self._logger is None:

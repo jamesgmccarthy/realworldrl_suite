@@ -9,7 +9,7 @@
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either enexpress or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
@@ -26,9 +26,13 @@ import os
 
 from absl import app
 from absl import flags
-from baselines import bench
-from baselines.common.vec_env import dummy_vec_env
-from baselines.ppo2 import ppo2
+#from baselines import bench
+#from baselines.common.vec_env import dummy_vec_env
+#from baselines.ppo2 import ppo2
+from stable_baselines3 import PPO
+from stable_baselines3.common.utils import obs_as_tensor
+from stable_baselines3.common.env_util import make_vec_env
+
 import dm2gym.envs.dm_suite_env as dm2gym
 import realworldrl_suite.environments as rwrl
 
@@ -46,55 +50,58 @@ FLAGS = flags.FLAGS
 
 
 class GymEnv(dm2gym.DMSuiteEnv):
-  """Wrapper that convert a realworldrl environment to a gym environment."""
+    """Wrapper that convert a realworldrl environment to a gym environment."""
 
-  def __init__(self, env):
-    """Constructor. We reuse the facilities from dm2gym."""
-    self.env = env
-    self.metadata = {
-        'render.modes': ['human', 'rgb_array'],
-        'video.frames_per_second': round(1. / self.env.control_timestep())
-    }
-    self.observation_space = dm2gym.convert_dm_control_to_gym_space(
-        self.env.observation_spec())
-    self.action_space = dm2gym.convert_dm_control_to_gym_space(
-        self.env.action_spec())
-    self.viewer = None
+    def __init__(self, env):
+        """Constructor. We reuse the facilities from dm2gym."""
+        self.env = env
+        self.metadata = {
+            'render.modes': ['human', 'rgb_array'],
+            'video.frames_per_second': round(1. / self.env.control_timestep())
+        }
+        self.observation_space = dm2gym.convert_dm_control_to_gym_space(
+            self.env.observation_spec())
+        self.action_space = dm2gym.convert_dm_control_to_gym_space(
+            self.env.action_spec())
+        self.viewer = None
 
 
 def run():
-  """Runs a PPO agent on a given environment."""
+    """Runs a PPO agent on a given environment."""
 
-  def _load_env():
-    """Loads environment."""
-    raw_env = rwrl.load(
-        domain_name=FLAGS.domain_name,
-        task_name=FLAGS.task_name,
-        safety_spec=dict(enable=True),
-        delay_spec=dict(enable=True, actions=20),
-        log_output=os.path.join(FLAGS.save_path, 'log.npz'),
-        environment_kwargs=dict(
-            log_safety_vars=True, log_every=20, flat_observation=True))
-    env = GymEnv(raw_env)
-    env = bench.Monitor(env, FLAGS.save_path)
-    return env
+    def _load_env():
+        """Loads environment."""
+        raw_env = rwrl.load(
+            domain_name=FLAGS.domain_name,
+            task_name=FLAGS.task_name,
+            safety_spec={'enable':True},
+            delay_spec=dict(enable=False),
+            log_output=os.path.join(FLAGS.save_path, 'log.npz'),
+            environment_kwargs=dict(
+                log_safety_vars=True, log_every=20, flat_observation=True))
+        env = GymEnv(raw_env)
+        #env = bench.Monitor(env, FLAGS.save_path)
+        return env
 
-  env = dummy_vec_env.DummyVecEnv([_load_env])
-
-  ppo2.learn(
-      env=env,
-      network=FLAGS.network,
-      lr=FLAGS.learning_rate,
-      total_timesteps=FLAGS.total_timesteps,  # make sure to run enough steps
-      nsteps=FLAGS.nsteps,
-      gamma=FLAGS.agent_discount,
-  )
+    # env = dummy_vec_env.DummyVecEnv([_load_env])
+    env = make_vec_env(_load_env)
+    ppo = PPO("MlpPolicy", env, verbose=1)
+    ppo.learn(total_timesteps=100)
+    env_ = env.envs[0]
+    obs = env_.reset()
+    for i in range(100):
+        obs = obs_as_tensor(obs, device='cpu')
+        act = ppo.predict(obs)[0]
+        new_obs, reward, done, info = env_.step(act)
+        print(info)
+        env_.render(use_opencv_renderer=True)
+        obs = new_obs
 
 
 def main(argv):
-  del argv  # Unused.
-  run()
+    del argv  # Unused.
+    run()
 
 
 if __name__ == '__main__':
-  app.run(main)
+    app.run(main)
