@@ -427,16 +427,17 @@ class RealWorldBring(realworld_env.Base, manipulator.Bring):
     self._safety_observed = safety_spec.get('observations', True)
 
     if self._safety_enabled:
-      # Add safety specifications.
-      if 'constraints' in safety_spec:
-        self.constraints = safety_spec['constraints']
-      else:
-        self.constraints = collections.OrderedDict([
+      constraints = collections.OrderedDict([
             ('joint_angle_constraint', joint_angle_constraint),
             ('joint_velocity_constraint', joint_velocity_constraint),
             ('joint_accel_constraint', joint_accel_constraint),
             ('grasp_force_constraint', grasp_force_constraint)
         ])
+      # Add safety specifications.
+      if 'constraints' in safety_spec:
+          self.constraints = collections.OrderedDict([(c,constraints[c]) for c in safety_spec['constraints']])
+      else:
+          self.constraints = constraints
       if 'limits' in safety_spec:
         self.limits = safety_spec['limits']
       else:

@@ -479,15 +479,16 @@ class RealWorldPlanarWalker(realworld_env.Base, walker.PlanarWalker):
 
     if self._safety_enabled:
       # Add safety specifications.
-      if 'constraints' in safety_spec:
-        self.constraints = safety_spec['constraints']
-      else:
-        self.constraints = collections.OrderedDict([
+      constraints = collections.OrderedDict([
             ('joint_angle_constraint', joint_angle_constraint),
             ('joint_velocity_constraint', joint_velocity_constraint),
             ('dangerous_fall_constraint', dangerous_fall_constraint),
             ('torso_upright_constraint', torso_upright_constraint)
         ])
+      if 'constraints' in safety_spec:
+        self.constraints = collections.OrderedDict([(c,constraints[c]) for c in safety_spec['constraints']])
+      else:
+        self.constraints = constraints
       if 'limits' in safety_spec:
         self.limits = safety_spec['limits']
       else:

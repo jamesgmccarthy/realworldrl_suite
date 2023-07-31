@@ -425,17 +425,19 @@ class RealWorldHumanoid(realworld_env.Base, humanoid.Humanoid):
     self._safety_observed = safety_spec.get('observations', True)
 
     if self._safety_enabled:
-      # Add safety specifications.
-      if 'constraints' in safety_spec:
-        self.constraints = safety_spec['constraints']
-      else:
-        self.constraints = collections.OrderedDict([
+      # Add safety specifications
+      constraints = collections.OrderedDict([
             ('joint_angle_constraint', joint_angle_constraint),
             ('joint_velocity_constraint', joint_velocity_constraint),
             ('upright_constraint', upright_constraint),
             ('dangerous_fall_constraint', dangerous_fall_constraint),
             ('foot_force_constraint', foot_force_constraint)
         ])
+  
+      if 'constraints' in safety_spec:
+        self.constraints = safety_spec['constraints']
+      else:
+        self.constraints = constraints
       if 'limits' in safety_spec:
         self.limits = safety_spec['limits']
       else:

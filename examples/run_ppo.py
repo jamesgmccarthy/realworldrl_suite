@@ -37,7 +37,7 @@ import dm2gym.envs.dm_suite_env as dm2gym
 import realworldrl_suite.environments as rwrl
 
 flags.DEFINE_string('domain_name', 'cartpole', 'domain to solve')
-flags.DEFINE_string('task_name', 'realworld_balance', 'task to solve')
+flags.DEFINE_string('task_name', 'realworld_swingup', 'task to solve')
 flags.DEFINE_string('save_path', '/tmp/rwrl', 'where to save results')
 flags.DEFINE_boolean('verbose', True, 'whether to log to std output')
 flags.DEFINE_string('network', 'mlp', 'name of network architecture')
@@ -86,14 +86,13 @@ def run():
     # env = dummy_vec_env.DummyVecEnv([_load_env])
     env = make_vec_env(_load_env)
     ppo = PPO("MlpPolicy", env, verbose=1)
-    ppo.learn(total_timesteps=100)
+    ppo.learn(total_timesteps=100000)
     env_ = env.envs[0]
     obs = env_.reset()
     for i in range(100):
         obs = obs_as_tensor(obs, device='cpu')
         act = ppo.predict(obs)[0]
         new_obs, reward, done, info = env_.step(act)
-        print(info)
         env_.render(use_opencv_renderer=True)
         obs = new_obs
 
