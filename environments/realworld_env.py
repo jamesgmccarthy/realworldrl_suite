@@ -20,7 +20,8 @@ import copy
 import inspect
 
 import numpy as np
-from realworldrl_suite.utils import multiobj_objectives
+
+from src.envs.realworldrl_suite.utils import multiobj_objectives
 
 PERTURB_SCHEDULERS = [
     'constant', 'random_walk', 'drift_pos', 'drift_neg', 'cyclic_pos',
@@ -283,6 +284,7 @@ class Base(object):
         self._perturb_min = None
         self._perturb_max = None
         self._perturb_std = None
+        self._perturb_count = 0
 
         # State and action dimensions related.
         self._dimensionality_enabled = False
@@ -584,7 +586,7 @@ class Base(object):
             identities = np.random.binomial(
                 n=1, p=self._noise_stuck_action_prob, size=action.shape)
             stuck_indices = (
-                (self._noise_stuck_action_arr == 0) & (identities == 1))
+                    (self._noise_stuck_action_arr == 0) & (identities == 1))
             self._noise_stuck_action_arr[stuck_indices] = (
                 self._noise_stuck_action_steps)
             # Stick values.
@@ -639,6 +641,11 @@ class Base(object):
         # reward function, which will be called before get_observation.
         if self._safety_enabled:
             self._populate_constraints_obs(physics)
+        if self.perturb_enabled:
+            # if self._perturb_count % self.perturb_period == 0:
+            if np.random.random() <= self._perturb_prob:
+                self._physics = self.update_physics()
+                self._perturb_count += 1
 
     @property
     def constraints_obs(self):

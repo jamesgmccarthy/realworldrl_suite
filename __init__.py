@@ -15,5 +15,5 @@
 
 """Library to do real-world RL."""
 
-import realworldrl_suite.environments
-import realworldrl_suite.utils
+import src.envs.realworldrl_suite.environments
+import src.envs.realworldrl_suite.utils

@@ -14,15 +14,14 @@
 # limitations under the License.
 
 """Simple viewer for realworld environments."""
+import numpy as np
 from absl import app
 from absl import flags
 from absl import logging
-
 from dm_control import suite
 from dm_control import viewer
 
-import numpy as np
-import realworldrl_suite.environments as rwrl
+import src.envs.realworldrl_suite.environments as rwrl
 
 flags.DEFINE_enum('suite', 'rwrl', ['rwrl', 'dm_control'], 'Suite choice')
 flags.DEFINE_string('domain_name', 'cartpole', 'domain name')
@@ -33,27 +32,27 @@ FLAGS = flags.FLAGS
 
 class RandomAgent(object):
 
-  def __init__(self, action_spec):
-    self.action_spec = action_spec
+    def __init__(self, action_spec):
+        self.action_spec = action_spec
 
-  def action(self, timestep):
-    del timestep
-    return np.random.uniform(
-        self.action_spec.minimum,
-        self.action_spec.maximum,
-        size=self.action_spec.shape)
+    def action(self, timestep):
+        del timestep
+        return np.random.uniform(
+            self.action_spec.minimum,
+            self.action_spec.maximum,
+            size=self.action_spec.shape)
 
 
 def main(_):
-  if FLAGS.suite == 'dm_control':
-    logging.info('Loading from dm_control...')
-    env = suite.load(domain_name=FLAGS.domain_name, task_name=FLAGS.task_name)
-  elif FLAGS.suite == 'rwrl':
-    logging.info('Loading from rwrl...')
-    env = rwrl.load(domain_name=FLAGS.domain_name, task_name=FLAGS.task_name)
-  random_policy = RandomAgent(env.action_spec()).action
-  viewer.launch(env, policy=random_policy)
+    if FLAGS.suite == 'dm_control':
+        logging.info('Loading from dm_control...')
+        env = suite.load(domain_name=FLAGS.domain_name, task_name=FLAGS.task_name)
+    elif FLAGS.suite == 'rwrl':
+        logging.info('Loading from rwrl...')
+        env = rwrl.load(domain_name=FLAGS.domain_name, task_name=FLAGS.task_name)
+    random_policy = RandomAgent(env.action_spec()).action
+    viewer.launch(env, policy=random_policy)
 
 
 if __name__ == '__main__':
-  app.run(main)
+    app.run(main)
