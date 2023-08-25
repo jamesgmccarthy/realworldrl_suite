@@ -14,11 +14,11 @@
 # limitations under the License.
 
 """Safety environments for real-world RL."""
-from realworldrl_suite.environments import cartpole
-from realworldrl_suite.environments import humanoid
-from realworldrl_suite.environments import manipulator
-from realworldrl_suite.environments import quadruped
-from realworldrl_suite.environments import walker
+from src.envs.realworldrl_suite.environments import cartpole
+from src.envs.realworldrl_suite.environments import humanoid
+from src.envs.realworldrl_suite.environments import manipulator
+from src.envs.realworldrl_suite.environments import quadruped
+from src.envs.realworldrl_suite.environments import walker
 
 # This is a tuple of all the domains and tasks present in the suite.  It is
 # currently used mainly for unit test coverage but can be useful if one wants
@@ -43,4 +43,4 @@ DOMAINS = dict(
 
 
 def load(domain_name, task_name, **kwargs):
-  return DOMAINS[domain_name].load(task_name, **kwargs)
+    return DOMAINS[domain_name].load(task_name, **kwargs)

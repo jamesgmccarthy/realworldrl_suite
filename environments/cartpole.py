@@ -22,8 +22,8 @@ import dm_control.suite.common as common
 import numpy as np
 from lxml import etree
 
-from realworldrl_suite.environments import realworld_env
-from realworldrl_suite.utils import loggers, wrappers
+from src.envs.realworldrl_suite.environments import realworld_env
+from src.envs.realworldrl_suite.utils import loggers, wrappers
 
 _DEFAULT_TIME_LIMIT = 10
 
@@ -51,9 +51,9 @@ def balance_velocity_constraint(env, safety_vars):
     # then the constraint is no longer satisfied.  In cosine-space the cosine
     # of the angle needs to be greater than a certain value to be close to zero.
     return not (
-        np.greater(joint_angle_cos,
-                   np.cos(env.limits['balance_velocity_constraint'][0])) and
-        np.greater(joint_vel, env.limits['balance_velocity_constraint'][1])[0])
+            np.greater(joint_angle_cos,
+                       np.cos(env.limits['balance_velocity_constraint'][0])) and
+            np.greater(joint_vel, env.limits['balance_velocity_constraint'][1])[0])
 
 
 def slider_accel_constraint(env, safety_vars):
@@ -103,9 +103,9 @@ def realworld_balance(time_limit=_DEFAULT_TIME_LIMIT,
     # Check and update for combined challenge.
     (delay_spec, noise_spec,
      perturb_spec, dimensionality_spec) = (
-         realworld_env.get_combined_challenge(
-             combined_challenge, delay_spec, noise_spec, perturb_spec,
-             dimensionality_spec))
+        realworld_env.get_combined_challenge(
+            combined_challenge, delay_spec, noise_spec, perturb_spec,
+            dimensionality_spec))
     # Updating perturbation parameters if combined_challenge.
     if combined_challenge == 'easy':
         perturb_spec.update(
@@ -174,9 +174,9 @@ def realworld_swingup(time_limit=_DEFAULT_TIME_LIMIT,
     # Check and update for combined challenge.
     (delay_spec, noise_spec,
      perturb_spec, dimensionality_spec) = (
-         realworld_env.get_combined_challenge(
-             combined_challenge, delay_spec, noise_spec, perturb_spec,
-             dimensionality_spec))
+        realworld_env.get_combined_challenge(
+            combined_challenge, delay_spec, noise_spec, perturb_spec,
+            dimensionality_spec))
     # Updating perturbation parameters if combined_challenge.
     if combined_challenge == 'easy':
         perturb_spec.update(
@@ -403,13 +403,13 @@ class RealWorldBalance(realworld_env.Base, cartpole.Balance):
 
         if self._safety_enabled:
             constraints = collections.OrderedDict([
-                    ('slider_pos_constraint', slider_pos_constraint),
-                    ('slider_accel_constraint', slider_accel_constraint),
-                    ('balance_velocity_constraint', balance_velocity_constraint)
-                ])
+                ('slider_pos_constraint', slider_pos_constraint),
+                ('slider_accel_constraint', slider_accel_constraint),
+                ('balance_velocity_constraint', balance_velocity_constraint)
+            ])
             # Add safety specifications.
             if 'constraints' in safety_spec:
-                self.constraints = collections.OrderedDict([(c,constraints[c]) for c in safety_spec['constraints']])
+                self.constraints = collections.OrderedDict([(c, constraints[c]) for c in safety_spec['constraints']])
             else:
                 self.constraints = constraints
             if 'limits' in safety_spec:
@@ -441,14 +441,14 @@ class RealWorldBalance(realworld_env.Base, cartpole.Balance):
             joint_angle_cos=physics.pole_angle_cosine().copy(),
             joint_vel=np.abs(physics.angular_vel().copy()),
             slider_accel=np.abs(physics.named.data.qacc['slider'].copy()),
-            actions=physics.control(),)
+            actions=physics.control(), )
         return safety_vars
 
     def _setup_perturb(self, perturb_spec):
         """Setup for the perturbations specification of the task."""
         self._perturb_enabled = perturb_spec.get('enable', False)
         self._perturb_period = perturb_spec.get('period', 1)
-
+        self._perturb_prob = perturb_spec.get('prob', 0.05)
         if self._perturb_enabled:
             # Add perturbations specifications.
             self._perturb_param = perturb_spec.get('param', 'pole_length')

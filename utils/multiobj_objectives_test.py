@@ -19,8 +19,10 @@ from absl.testing import absltest
 from absl.testing import parameterized
 
 import numpy as np
-import realworldrl_suite.environments as rwrl
-from realworldrl_suite.utils import multiobj_objectives
+import src.envs.realworldrl_suite.environments as rwrl
+
+fromsrc.envs.realworldrl_suite.utils
+import multiobj_objectives
 
 
 class MultiObjTest(parameterized.TestCase):

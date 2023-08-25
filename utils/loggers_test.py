@@ -18,29 +18,30 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-from absl.testing import absltest
 import numpy as np
 import numpy.testing as npt
-from realworldrl_suite.utils import loggers
+from absl.testing import absltest
+
+from src.envs.realworldrl_suite.utils import loggers
 
 
 class LoggersTest(absltest.TestCase):
 
-  def test_write(self):
-    temp_file = self.create_tempfile()
-    plogger = loggers.PickleLogger(path=temp_file.full_path)
-    write_meta = np.random.randn(10, 10)
-    push_data = np.random.randn(10, 10)
-    save_data = np.random.randn(10, 10)
-    plogger.set_meta(write_meta)
-    plogger.push(push_data)
-    plogger.save(data=save_data)
-    with open(plogger.logs_path, 'rb') as f:
-      read_data = np.load(f, allow_pickle=True)
-      npt.assert_array_equal(read_data['meta'], write_meta)
-      npt.assert_array_equal(read_data['stack'][0], push_data)
-      npt.assert_array_equal(read_data['data'], save_data)
+    def test_write(self):
+        temp_file = self.create_tempfile()
+        plogger = loggers.PickleLogger(path=temp_file.full_path)
+        write_meta = np.random.randn(10, 10)
+        push_data = np.random.randn(10, 10)
+        save_data = np.random.randn(10, 10)
+        plogger.set_meta(write_meta)
+        plogger.push(push_data)
+        plogger.save(data=save_data)
+        with open(plogger.logs_path, 'rb') as f:
+            read_data = np.load(f, allow_pickle=True)
+            npt.assert_array_equal(read_data['meta'], write_meta)
+            npt.assert_array_equal(read_data['stack'][0], push_data)
+            npt.assert_array_equal(read_data['data'], save_data)
 
 
 if __name__ == '__main__':
-  absltest.main()
+    absltest.main()
