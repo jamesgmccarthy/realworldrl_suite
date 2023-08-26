@@ -275,6 +275,7 @@ class Base(object):
         # self._perturb_start, self._perturb_min, self._perturb_max,
         # self._perturb_std, and self._perturb_period
         self._perturb_enabled = False
+        self.previous_step_perturbed = False
         self._perturb_period = None
         self._perturb_param = None
         self._perturb_scheduler = None
@@ -429,8 +430,16 @@ class Base(object):
                 self._perturb_saw_wave_sign *= -1.
 
         # Clip the value to be in the defined support
-        self._perturb_cur = np.clip(self._perturb_cur, self._perturb_min,
-                                    self._perturb_max)
+        if not self.previous_step_perturbed:
+            self._perturb_cur = np.clip(self._perturb_cur, self._perturb_min,
+                                        self._perturb_max)
+            print('perturbing:', self._perturb_cur)
+            self.previous_step_perturbed = True
+        else:  # reset perturbation
+            self._perturb_cur = np.clip(self._perturb_start, self._perturb_min,
+                                        self._perturb_max)
+            print('resetting perturbation:', self._perturb_cur)
+            self.previous_step_perturbed = False
 
     def get_observation(self, physics, obs=None):
         """Augments the observation based on the different specifications."""
@@ -643,9 +652,12 @@ class Base(object):
             self._populate_constraints_obs(physics)
         if self.perturb_enabled:
             # if self._perturb_count % self.perturb_period == 0:
-            if np.random.random() <= self._perturb_prob:
+            rand_num = np.random.random()
+            if rand_num <= self._perturb_prob:
                 self._physics = self.update_physics()
                 self._perturb_count += 1
+            elif rand_num > self._perturb_prob and self.previous_step_perturbed:
+                self._physics = self.update_physics()
 
     @property
     def constraints_obs(self):
