@@ -433,13 +433,18 @@ class Base(object):
         if not self.previous_step_perturbed:
             self._perturb_cur = np.clip(self._perturb_cur, self._perturb_min,
                                         self._perturb_max)
-            print('perturbing:', self._perturb_cur)
+
             self.previous_step_perturbed = True
-        else:  # reset perturbation
+        elif self.previous_step_perturbed and self._perturb_count > 0:  # reset perturbation
             self._perturb_cur = np.clip(self._perturb_start, self._perturb_min,
                                         self._perturb_max)
-            print('resetting perturbation:', self._perturb_cur)
+
             self.previous_step_perturbed = False
+
+    def reset(self):
+        self._perturb_count = 0
+        self.previous_step_perturbed = False
+        self._perturb_cur = self._perturb_start
 
     def get_observation(self, physics, obs=None):
         """Augments the observation based on the different specifications."""
@@ -656,7 +661,7 @@ class Base(object):
             if rand_num <= self._perturb_prob:
                 self._physics = self.update_physics()
                 self._perturb_count += 1
-            elif rand_num > self._perturb_prob and self.previous_step_perturbed:
+            elif rand_num > self._perturb_prob and (self.previous_step_perturbed and self._perturb_count > 0):
                 self._physics = self.update_physics()
 
     @property

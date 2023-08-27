@@ -101,11 +101,8 @@ class LoggingEnv(control.Environment):
         """Starts a new episode and returns the first `TimeStep`."""
         if self._stats_acc:
             self._stats_acc.clear_buffer()
-        if self._task.perturb_enabled:
-            if self._counter % self._task.perturb_period == 0:
-                self._physics = self._task.update_physics()
-            self._counter += 1
         timestep = super(LoggingEnv, self).reset()
+
         self._track(timestep)
         if self._flat_observation_:
             timestep = dm_env.TimeStep(
