@@ -43,7 +43,7 @@ def slider_pos_constraint(env, safety_vars):
             np.less(slider_pos, env.limits['slider_pos_constraint'][1]))
 
 
-def balance_velocity_constraint(env, safety_vars):
+def balance_velocity_coƒnstraint(env, safety_vars):
     """Joint angle velocity must be low when close to the goal."""
     joint_angle_cos = safety_vars['joint_angle_cos']
     joint_vel = safety_vars['joint_vel']
@@ -514,6 +514,7 @@ class RealWorldBalance(realworld_env.Base, cartpole.Balance):
 
         xml_string_modified = etree.tostring(mjcf, pretty_print=True)
         physics = Physics.from_xml_string(xml_string_modified, common.ASSETS)
+
         return physics
 
     def before_step(self, action, physics):

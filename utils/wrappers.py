@@ -27,6 +27,8 @@ import six
 from dm_control.rl import control
 from dm_env import specs
 
+import src.envs.realworldrl_suite.environments as rwrl_envs
+from src.envs.realworldrl_suite.environments import realworld_env
 from src.envs.realworldrl_suite.utils import accumulators
 
 
@@ -134,6 +136,8 @@ class LoggingEnv(control.Environment):
         """Updates the environment using the action and returns a `TimeStep`."""
         do_track = not self._reset_next_step
         timestep = super(LoggingEnv, self).step(action)
+        if self.task.perturb_enabled:
+            self.perturb_params()
         constraints = timestep.observation.get('constraints', np.array([0]))
         if do_track:
             self._track(timestep)
@@ -152,6 +156,30 @@ class LoggingEnv(control.Environment):
                     timestep.observation)['observations'])
 
         return timestep, constraints
+
+    def perturb_params(self):
+        # if self._perturb_count % self.perturb_period == 0:
+        rand_num = np.random.random()
+        if self.task.previous_step_perturbed:
+            if isinstance(self.task, rwrl_envs.cartpole.RealWorldBalance):
+                self._physics.model.dof_damping = np.array([5.e-04, 2.e-06])
+            elif isinstance(self.task, rwrl_envs.walker.RealWorldPlanarWalker):
+                if self.task._perturb_param == 'contact_friction':
+                    self._physics.model.geom_friction[:, 0] = self.task._perturb_start
+            self.task.previous_step_perturbed = False
+        elif rand_num <= self.task._perturb_prob:
+            realworld_env.Base._generate_parameter(self.task)
+            if isinstance(self.task, rwrl_envs.cartpole.RealWorldBalance):
+                if self.task._perturb_param == 'slider_damping':
+                    self._physics.model.dof_damping = np.array([self.task._perturb_cur, 2.e-6])  # slider damping
+                elif self.task._perturb_param == 'joint_damping':
+                    self._physics.model.dof_damping = np.array([5.e-04, self.task._perturb_cur])  # joint damping
+            elif isinstance(self.task, rwrl_envs.walker.RealWorldPlanarWalker):
+                if self.task._perturb_param == 'contact_friction':
+                    self._physics.model.geom_friction[:, 0] = self.task._perturb_cur
+                # self._physics = self.task.update_physics()
+            self.task._perturb_count += 1
+            self.task.previous_step_perturbed = True
 
     def _track(self, timestep):
         if self._logger is None:

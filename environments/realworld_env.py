@@ -434,12 +434,9 @@ class Base(object):
             self._perturb_cur = np.clip(self._perturb_cur, self._perturb_min,
                                         self._perturb_max)
 
-            self.previous_step_perturbed = True
         elif self.previous_step_perturbed and self._perturb_count > 0:  # reset perturbation
             self._perturb_cur = np.clip(self._perturb_start, self._perturb_min,
                                         self._perturb_max)
-
-            self.previous_step_perturbed = False
 
     def reset(self):
         self._perturb_count = 0
@@ -655,14 +652,6 @@ class Base(object):
         # reward function, which will be called before get_observation.
         if self._safety_enabled:
             self._populate_constraints_obs(physics)
-        if self.perturb_enabled:
-            # if self._perturb_count % self.perturb_period == 0:
-            rand_num = np.random.random()
-            if rand_num <= self._perturb_prob:
-                self._physics = self.update_physics()
-                self._perturb_count += 1
-            elif rand_num > self._perturb_prob and (self.previous_step_perturbed and self._perturb_count > 0):
-                self._physics = self.update_physics()
 
     @property
     def constraints_obs(self):
